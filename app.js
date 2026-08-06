@@ -162,17 +162,10 @@ function renderEmptyState() {
     document.querySelectorAll('.card-status').forEach(el => { el.textContent = '--'; el.className = 'card-status'; });
 }
 
-// ===== Demo数据（离线模式）=====
+// ===== Demo数据（离线模式，不再使用）=====
 function loadDemoData() {
-    const cached = localStorage.getItem('trading_data');
-    if (cached) {
-        try {
-            const data = JSON.parse(cached);
-            Object.assign(AppState.data, data);
-        } catch (e) {}
-    }
-    generateDemoCharts();
-    showToast('离线模式 - 数据来自本地缓存', 'info');
+    // 不再使用假数据，直接显示空状态
+    renderEmptyState();
 }
 
 function generateDemoCharts() {
@@ -203,7 +196,8 @@ function generateDemoCharts() {
 function renderOverview() {
     const data = AppState.data;
     if (!data.macroManual.length && !data.macroAuto.length) {
-        generateDemoCharts();
+        // 无数据时显示空状态，不显示假数据
+        renderEmptyState();
         return;
     }
 
@@ -232,14 +226,45 @@ function renderOverview() {
 }
 
 function updateMetricCards() {
-    // 更新指标卡片（使用最新数据或demo数据）
+    // 从实际数据更新指标卡片，无数据显示 "--"
+    const manual = AppState.data.macroManual.map(r => r.fields || {});
+    const auto = AppState.data.macroAuto.map(r => r.fields || {});
+    
+    // 获取最新一条数据
+    const latestManual = manual.length > 0 ? manual[manual.length - 1] : {};
+    const latestAuto = auto.length > 0 ? auto[auto.length - 1] : {};
+    
     const cards = {
-        'card-vix': { value: '18.5', status: '正常', statusClass: 'green' },
-        'card-erp': { value: '5.2%', status: '偏低估', statusClass: 'green' },
-        'card-dxy': { value: '103.8', status: '中性', statusClass: 'blue' },
-        'card-pe': { value: '42%', status: '合理', statusClass: 'blue' },
-        'card-temp': { value: '55%', status: '正常', statusClass: 'blue' },
-        'card-score': { value: '+1', status: '偏多', statusClass: 'green' }
+        'card-vix': { 
+            value: latestAuto['VIX值'] || '--', 
+            status: latestAuto['VIX状态'] || '--', 
+            statusClass: 'blue' 
+        },
+        'card-erp': { 
+            value: latestManual['A股ERP'] ? (parseFloat(latestManual['A股ERP']) * 100).toFixed(1) + '%' : '--', 
+            status: latestManual['ERP状态'] || '--', 
+            statusClass: 'blue' 
+        },
+        'card-dxy': { 
+            value: latestManual['DXY'] || '--', 
+            status: latestManual['DXY状态'] || '--', 
+            statusClass: 'blue' 
+        },
+        'card-pe': { 
+            value: latestManual['PE百分位'] || '--', 
+            status: latestManual['PE状态'] || '--', 
+            statusClass: 'blue' 
+        },
+        'card-temp': { 
+            value: latestManual['市场温度'] || '--', 
+            status: latestManual['温度状态'] || '--', 
+            statusClass: 'blue' 
+        },
+        'card-score': { 
+            value: latestManual['宏观评分'] || '--', 
+            status: latestManual['评分状态'] || '--', 
+            statusClass: 'blue' 
+        }
     };
 
     Object.entries(cards).forEach(([id, data]) => {
