@@ -726,3 +726,31 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
     showToast('正在刷新数据...', 'info');
     await connectFeishu();
 });
+// ===== 空状态渲染（离线模式）=====
+function renderEmptyState() {
+    // 清空所有数据
+    AppState.data.macroManual = [];
+    AppState.data.macroAuto = [];
+    AppState.data.holdings = [];
+    AppState.data.trades = [];
+    AppState.data.valuation = [];
+    AppState.data.ruleParams = [];
+    
+    // 显示空状态提示
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 80px 20px; color: #666;">
+                <div style="font-size: 48px; margin-bottom: 20px;">📡</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px; color: #888;">数据加载失败</h3>
+                <p style="font-size: 14px; line-height: 1.6;">
+                    无法从服务器获取数据<br>
+                    请检查网络连接后刷新页面
+                </p>
+                <button onclick="location.reload()" style="margin-top: 24px; padding: 10px 24px; background: #2962ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                    刷新页面
+                </button>
+            </div>
+        `;
+    }
+}
