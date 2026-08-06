@@ -8,12 +8,19 @@ const FeishuAPI = {
     
     // 加载JSON数据文件
     async loadData() {
-        const tables = ['宏观数据_自动', '宏观数据_手动', '持仓数据', '交易记录', 
-                       '指数估值数据', '股票历史数据', '规则参数配置'];
+        const tableMap = {
+            '宏观数据_自动': 'macro_auto',
+            '宏观数据_手动': 'macro_manual',
+            '持仓数据': 'holdings',
+            '交易记录': 'trades',
+            '指数估值数据': 'valuation',
+            '股票历史数据': 'stock_history',
+            '规则参数配置': 'rule_params'
+        };
         
-        for (const tableName of tables) {
+        for (const [tableName, fileName] of Object.entries(tableMap)) {
             try {
-                const resp = await fetch(`./dashboard-data/${tableName}.json`);
+                const resp = await fetch(`./dashboard-data/${fileName}.json`);
                 if (resp.ok) {
                     this.dataCache[tableName] = await resp.json();
                 } else {
