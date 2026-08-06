@@ -61,18 +61,13 @@ function switchTab(tab) {
 async function connectFeishu() {
     setStatus('connecting');
     try {
-        const token = await FeishuAPI.getToken();
-        if (token) {
-            await FeishuAPI.discoverTables();
-            // 加载所有数据
-            await loadAllData();
-            setStatus('online');
-        } else {
-            setStatus('offline');
-            loadDemoData();
-        }
+        // 从JSON文件加载数据
+        await FeishuAPI.loadData();
+        // 加载所有数据
+        await loadAllData();
+        setStatus('online');
     } catch (e) {
-        console.error('连接失败:', e);
+        console.error('加载数据失败:', e);
         setStatus('offline');
         loadDemoData();
     }
