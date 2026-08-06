@@ -133,7 +133,8 @@ function syncParamsFromFeishu(rules) {
     };
 
     rules.forEach(r => {
-        const f = r.fields;
+        const f = r && r.fields;
+        if (!f || !f['规则编号']) return;
         const key = mapping[f['规则编号']];
         if (key) {
             const val = parseFloat(f['参数值']);
