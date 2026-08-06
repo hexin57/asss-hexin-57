@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易复盘系统 - 操作型看板 v2.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="top-bar">
+        <div class="logo">
+            <span class="logo-icon">📊</span>
+            <span class="logo-text">交易复盘系统</span>
+            <span class="version">v2.0 操作型看板</span>
+        </div>
+        <div class="status-bar">
+            <span id="connectionStatus" class="status-indicator offline">● 未连接</span>
+            <span id="lastUpdate" class="update-time">--</span>
+            <button id="refreshBtn" class="btn-icon" title="刷新数据">🔄</button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <div class="main-container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <ul class="nav-list">
+                <li class="nav-item active" data-tab="overview">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-text">市场总览</span>
+                </li>
+                <li class="nav-item" data-tab="holdings">
+                    <span class="nav-icon">💼</span>
+                    <span class="nav-text">持仓管理</span>
+                </li>
+                <li class="nav-item" data-tab="compliance">
+                    <span class="nav-icon">✅</span>
+                    <span class="nav-text">合规检查</span>
+                </li>
+                <li class="nav-item" data-tab="trade">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">交易记录</span>
+                </li>
+                <li class="nav-item" data-tab="params">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">参数配置</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 内容面板 -->
+        <main class="content">
+            <!-- ===== 市场总览 ===== -->
+            <section id="tab-overview" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>市场宏观指标总览</h2>
+                    <div class="panel-actions">
+                        <select id="macroTimeRange" class="select-input">
+                            <option value="30">近30天</option>
+                            <option value="90">近90天</option>
+                            <option value="180" selected>近180天</option>
+                            <option value="365">近1年</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 宏观指标卡片 -->
+                <div class="metric-cards">
+                    <div class="metric-card" id="card-vix">
+                        <div class="card-label">VIX恐慌指数</div>
+                        <div class="card-value">--</div>
+                        <div class="card-status">--</div>
+                    </div>
+                    <div class="metric-card" id="card-erp">
+                        <div class="card-label">A股ERP</div>
+                        <div class="card-value">--</div>
+                        <div class="card-status">--</div>
+                    </div>
+                    <div class="metric-card" id="card-dxy">
+                        <div class="card-label">美元指数DXY</div>
+                        <div class="card-value">--</div>
+                        <div class="card-status">--</div>
+                    </div>
+                    <div class="metric-card" id="card-pe">
+                        <div class="card-label">整体PE百分位</div>
+                        <div class="card-value">--</div>
+                        <div class="card-status">--</div>
+                    </div>
+                    <div class="metric-card" id="card-temp">
+                        <div class="card-label">市场温度</div>
+                        <div class="card-value">--</div>
+                        <div class="card-status">--</div>
+                    </div>
+                    <div class="metric-card" id="card-score">
+                        <div class="card-label">宏观评分</div>
+                        <div class="card-value">--</div>
+                        <div class="card-status">--</div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="chart-grid">
+                    <div class="chart-box">
+                        <h3>VIX & ERP趋势</h3>
+                        <div id="chart-vix-erp" class="chart-container"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>估值百分位走势</h3>
+                        <div id="chart-pe-trend" class="chart-container"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>美元指数 & 融资数据</h3>
+                        <div id="chart-dxy-margin" class="chart-container"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>宏观评分历史</h3>
+                        <div id="chart-macro-score" class="chart-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 持仓管理 ===== -->
+            <section id="tab-holdings" class="tab-panel">
+                <div class="panel-header">
+                    <h2>持仓管理</h2>
+                    <button class="btn-primary" onclick="showAddHolding()">+ 添加持仓</button>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="chart-box">
+                        <h3>持仓分布</h3>
+                        <div id="chart-holding-pie" class="chart-container"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>持仓盈亏</h3>
+                        <div id="chart-holding-pnl" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table" id="holdingsTable">
+                        <thead>
+                            <tr>
+                                <th>类型</th>
+                                <th>代码</th>
+                                <th>名称</th>
+                                <th>持仓数量</th>
+                                <th>成本价</th>
+                                <th>当前价</th>
+                                <th>市值</th>
+                                <th>盈亏%</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="holdingsBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 添加持仓弹窗 -->
+                <div id="addHoldingModal" class="modal" style="display:none">
+                    <div class="modal-content">
+                        <h3>添加/编辑持仓</h3>
+                        <form id="holdingForm">
+                            <div class="form-grid">
+                                <label>类型
+                                    <select name="类型" class="select-input">
+                                        <option value="场内">场内</option>
+                                        <option value="场外">场外</option>
+                                    </select>
+                                </label>
+                                <label>代码 <input type="text" name="代码" class="text-input" required></label>
+                                <label>名称 <input type="text" name="名称" class="text-input" required></label>
+                                <label>持仓数量 <input type="number" name="持仓数量" class="text-input" step="0.01"></label>
+                                <label>成本价 <input type="number" name="成本价" class="text-input" step="0.001"></label>
+                                <label>当前价 <input type="number" name="当前价" class="text-input" step="0.001"></label>
+                                <label>持仓日期 <input type="date" name="持仓日期" class="text-input"></label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="closeModal('addHoldingModal')">取消</button>
+                                <button type="submit" class="btn-primary">保存</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 合规检查 ===== -->
+            <section id="tab-compliance" class="tab-panel">
+                <div class="panel-header">
+                    <h2>交易合规检查</h2>
+                    <span class="help-text">输入拟执行的操作，系统自动检查是否符合v1.4规则</span>
+                </div>
+
+                <div class="compliance-input">
+                    <div class="form-grid">
+                        <label>操作类型
+                            <select id="checkAction" class="select-input">
+                                <option value="buy">买入</option>
+                                <option value="sell">卖出</option>
+                                <option value="add">加仓</option>
+                                <option value="rebalance">再平衡</option>
+                            </select>
+                        </label>
+                        <label>标的代码 <input type="text" id="checkCode" class="text-input" placeholder="如: 110020"></label>
+                        <label>标的名称 <input type="text" id="checkName" class="text-input" placeholder="如: 沪深300"></label>
+                        <label>操作金额 <input type="number" id="checkAmount" class="text-input" placeholder="元"></label>
+                        <label>当前情绪评分 <input type="number" id="checkEmotion" class="text-input" min="0" max="40" value="20"></label>
+                    </div>
+                    <button class="btn-primary" onclick="runComplianceCheck()" style="margin-top:16px">🔍 执行合规检查</button>
+                </div>
+
+                <div id="complianceResult" class="compliance-result" style="display:none">
+                    <h3>检查结果</h3>
+                    <div id="complianceSummary" class="compliance-summary"></div>
+                    <div id="complianceDetails" class="compliance-details"></div>
+                </div>
+            </section>
+
+            <!-- ===== 交易记录 ===== -->
+            <section id="tab-trade" class="tab-panel">
+                <div class="panel-header">
+                    <h2>交易记录</h2>
+                    <button class="btn-primary" onclick="showAddTrade()">+ 记录交易</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table" id="tradeTable">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>代码</th>
+                                <th>名称</th>
+                                <th>方向</th>
+                                <th>价格</th>
+                                <th>数量/金额</th>
+                                <th>手续费</th>
+                                <th>操作理由</th>
+                                <th>对应规则</th>
+                                <th>合规</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradeBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 添加交易弹窗 -->
+                <div id="addTradeModal" class="modal" style="display:none">
+                    <div class="modal-content">
+                        <h3>记录交易</h3>
+                        <form id="tradeForm">
+                            <div class="form-grid">
+                                <label>日期 <input type="date" name="日期" class="text-input" required></label>
+                                <label>代码 <input type="text" name="代码" class="text-input" required></label>
+                                <label>名称 <input type="text" name="名称" class="text-input" required></label>
+                                <label>方向
+                                    <select name="方向" class="select-input">
+                                        <option value="买">买</option>
+                                        <option value="卖">卖</option>
+                                    </select>
+                                </label>
+                                <label>价格 <input type="number" name="价格" class="text-input" step="0.001"></label>
+                                <label>数量/金额 <input type="number" name="数量金额" class="text-input" step="0.01"></label>
+                                <label>手续费 <input type="number" name="手续费" class="text-input" step="0.01" value="0"></label>
+                                <label>操作理由 <input type="text" name="操作理由" class="text-input"></label>
+                                <label>对应规则 <input type="text" name="对应规则" class="text-input" placeholder="如: V-02 低估买入"></label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="closeModal('addTradeModal')">取消</button>
+                                <button type="submit" class="btn-primary">保存到飞书</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 参数配置 ===== -->
+            <section id="tab-params" class="tab-panel">
+                <div class="panel-header">
+                    <h2>规则参数配置</h2>
+                    <div class="panel-actions">
+                        <button class="btn-secondary" onclick="resetParams()">恢复默认</button>
+                        <button class="btn-primary" onclick="saveParams()">💾 保存参数</button>
+                    </div>
+                </div>
+                <p class="help-text">修改参数后点击保存，参数将存储在本地并同步到飞书。恢复默认将还原v1.4原始参数。</p>
+
+                <div id="paramsContainer" class="params-grid">
+                    <!-- 动态渲染 -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast通知 -->
+    <div id="toast" class="toast" style="display:none"></div>
+
+    <script src="config.js"></script>
+    <script src="feishu-api.js"></script>
+    <script src="compliance-engine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
