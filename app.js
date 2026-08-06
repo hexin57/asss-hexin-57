@@ -69,7 +69,9 @@ async function connectFeishu() {
     } catch (e) {
         console.error('加载数据失败:', e);
         setStatus('offline');
-        loadDemoData();
+        // 离线模式不加载演示数据，显示空状态
+        showToast('数据加载失败，请检查网络连接', 'error');
+        renderEmptyState();
     }
 }
 
